@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('http://yoursite.com').hostname,
+    root: '/',
+    scheme: 'Gemini',
+    version: '7.7.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="因 MySQL Server旧版本存在安全漏洞，需要更新mysql到最新版本5.7.28。 源码安装环境准备首先安装如下工具。 1yum -y install gcc gcc-c++ autoconf automake zlib* fiex* libxml* ncurses-devel libmcrypt* libtool-ltdl-devel* make cmake libaio libaio-">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CentOS安装、升级mysql">
+<meta property="og:url" content="http://yoursite.com/2020/01/06/Centos%E5%8D%87%E7%BA%A7mysql/index.html">
+<meta property="og:site_name" content="yanglishuan的博客">
+<meta property="og:description" content="因 MySQL Server旧版本存在安全漏洞，需要更新mysql到最新版本5.7.28。 源码安装环境准备首先安装如下工具。 1yum -y install gcc gcc-c++ autoconf automake zlib* fiex* libxml* ncurses-devel libmcrypt* libtool-ltdl-devel* make cmake libaio libaio-">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-01-06T01:32:23.304Z">
+<meta property="article:modified_time" content="2020-01-06T06:59:26.493Z">
+<meta property="article:author" content="yanglishuan">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2020/01/06/Centos%E5%8D%87%E7%BA%A7mysql/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>CentOS安装、升级mysql | yanglishuan的博客</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?8c627258f8940899735996b55af229aa";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">yanglishuan的博客</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/01/06/Centos%E5%8D%87%E7%BA%A7mysql/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://avatar.gitee.com/uploads/55/13655_yanglishuan.png!avatar200?1413413335">
+      <meta itemprop="name" content="yanglishuan">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="yanglishuan的博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          CentOS安装、升级mysql
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2020-01-06 09:32:23 / 修改时间：14:59:26" itemprop="dateCreated datePublished" datetime="2020-01-06T09:32:23+08:00">2020-01-06</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E8%BF%90%E7%BB%B4/" itemprop="url" rel="index">
+                    <span itemprop="name">运维</span>
+                  </a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>因 MySQL Server旧版本存在安全漏洞，需要更新mysql到最新版本5.7.28。</p>
+<h1 id="源码安装"><a href="#源码安装" class="headerlink" title="源码安装"></a>源码安装</h1><h2 id="环境准备"><a href="#环境准备" class="headerlink" title="环境准备"></a>环境准备</h2><p>首先安装如下工具。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">yum -y install gcc gcc-c++ autoconf automake zlib* fiex* libxml* ncurses-devel libmcrypt* libtool-ltdl-devel* make cmake libaio libaio-devel autoconf bzr bison libtool zlib-devel libaio*</span><br></pre></td></tr></table></figure>
+
+<a id="more"></a>
+
+<h3 id="下载并安装cmake"><a href="#下载并安装cmake" class="headerlink" title="下载并安装cmake"></a>下载并安装cmake</h3><p>在<a href="https://cmake.org/" target="_blank" rel="noopener">cmake网站</a>下载cmake包，依次执行以下命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> /app/src</span><br><span class="line">wget https://cmake.org/files/v3.12/cmake-3.12.1.tar.gz</span><br><span class="line">tar -zxvf cmake-3.12.1.tar.gz</span><br></pre></td></tr></table></figure>
+
+<p>以上命令完成下载和解压操作，接下来进行安装操作</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">cd cmake-3.12.1</span><br><span class="line">.&#x2F;configure --prefix&#x3D;&#x2F;app&#x2F;package&#x2F;cmake</span><br><span class="line">make</span><br><span class="line">make install</span><br><span class="line">export PATH&#x3D;&#x2F;app&#x2F;package&#x2F;cmake&#x2F;bin:$PATH</span><br></pre></td></tr></table></figure>
+
+<p>如果报错：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Error when bootstrapping CMake:</span><br><span class="line">Cannot find a C++ compiler that supports both C++11 and the specified C++ flags.</span><br><span class="line">Please specify one using environment variable CXX.</span><br><span class="line">The C++ flags are &quot;&quot;.</span><br><span class="line">They can be changed using the environment variable CXXFLAGS.</span><br><span class="line">See cmake_bootstrap.log for compilers attempted.</span><br></pre></td></tr></table></figure>
+
+<p>需要升级GCC，支持C++11，下载和安装依赖库：GMP、MPFR和MPC有顺序要求，GMP是基础、MPC依赖MPFR。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">cd &#x2F;app&#x2F;src</span><br><span class="line">wget http:&#x2F;&#x2F;ftp.gnu.org&#x2F;gnu&#x2F;gcc&#x2F;gcc-9.1.0&#x2F;gcc-9.1.0.tar.gz</span><br><span class="line">tar -xzvf gcc-9.1.0.tar.gz</span><br><span class="line">cd gcc-9.1.0</span><br><span class="line">.&#x2F;contrib&#x2F;download_prerequisites</span><br><span class="line"></span><br><span class="line">case $(uname -m) in</span><br><span class="line">  x86_64)</span><br><span class="line">    sed -e &#39;&#x2F;m64&#x3D;&#x2F;s&#x2F;lib64&#x2F;lib&#x2F;&#39; \</span><br><span class="line">        -i.orig gcc&#x2F;config&#x2F;i386&#x2F;t-linux64</span><br><span class="line">  ;;</span><br><span class="line">esac</span><br><span class="line"></span><br><span class="line">.&#x2F;configure --prefix&#x3D;&#x2F;app&#x2F;package&#x2F;gcc-9.1.0&#x2F;build --with-system-zlib --enable-languages&#x3D;c,c++ --disable-multilib --disable-bootstrap</span><br><span class="line">make</span><br><span class="line">make install</span><br><span class="line">cp -rf &#x2F;app&#x2F;package&#x2F;gcc-9.1.0&#x2F;build&#x2F;lib64&#x2F;libstdc++.so* &#x2F;usr&#x2F;lib64&#x2F;</span><br></pre></td></tr></table></figure>
+
+<h3 id="下载并安装ncurses"><a href="#下载并安装ncurses" class="headerlink" title="下载并安装ncurses"></a>下载并安装ncurses</h3><p>在<a href="http://invisible-island.net/ncurses/" target="_blank" rel="noopener">ncurses官网</a>下载ncurses包，依次执行以下命令。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> /app/src</span><br><span class="line">wget http://ftp.gnu.org/gnu/ncurses/ncurses-6.1.tar.gz</span><br><span class="line">tar -zxvf ncurses-6.1.tar.gz</span><br></pre></td></tr></table></figure>
+
+<p>以上命令完成下载和解压操作，接下来进行安装操作。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">cd ncurses-6.1</span><br><span class="line">.&#x2F;configure --prefix&#x3D;&#x2F;app&#x2F;package&#x2F;ncurses</span><br><span class="line">make</span><br><span class="line">make install</span><br></pre></td></tr></table></figure>
+
+<h3 id="boost"><a href="#boost" class="headerlink" title="boost"></a>boost</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">wget http://sourceforge.net/projects/boost/files/boost/1.59.0/boost_1_59_0.tar.bz2</span><br><span class="line">tar -xvf boost_1_59_0.tar.bz2</span><br></pre></td></tr></table></figure>
+
+<h2 id="为MySQL添加用户及组"><a href="#为MySQL添加用户及组" class="headerlink" title="为MySQL添加用户及组"></a>为MySQL添加用户及组</h2><p>为了保证操作系统的安全，这里为mysql工作进程创建专用的用户。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">groupadd mysql</span><br><span class="line">useradd -r -g mysql mysql -s /bin/<span class="literal">false</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="MySQL安装"><a href="#MySQL安装" class="headerlink" title="MySQL安装"></a>MySQL安装</h2><p>在<a href="https://www.mysql.com" target="_blank" rel="noopener">mysql官网</a>下载安装包，依次执行以下命令。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">cd &#x2F;app&#x2F;src</span><br><span class="line">wget https:&#x2F;&#x2F;cdn.mysql.com&#x2F;&#x2F;Downloads&#x2F;MySQL-5.7&#x2F;mysql-5.7.28-linux-glibc2.12-x86_64.tar.gz</span><br><span class="line">tar -zxvf mysql-5.7.28.tar.gz</span><br><span class="line">cd mysql-5.7.28</span><br><span class="line">mkdir bld</span><br><span class="line">cd bld</span><br><span class="line">cmake .. -DCMAKE_INSTALL_PREFIX&#x3D;&#x2F;app&#x2F;server&#x2F;mysql -DDEFAULT_CHARSET&#x3D;utf8 -DDEFAULT_COLLATION&#x3D;utf8_general_ci -DWITH_MYISAM_STORAGE_ENGINE&#x3D;1 -DWITH_INNOBASE_STORAGE_ENGINE&#x3D;1 -DWITH_ARCHIVE_STORAGE_ENGINE&#x3D;1 -DWITH_BLACKHOLE_STORAGE_ENGINE&#x3D;1 -DWITH_MEMORY_STORAGE_ENGINE&#x3D;1 -DWITH_READLINE&#x3D;1 -DENABLED_LOCAL_INFILE&#x3D;1 -DMYSQL_DATADIR&#x3D;&#x2F;app&#x2F;package&#x2F;mysql&#x2F;data -DMYSQL_USER&#x3D;mysql -DMYSQL_TCP_PORT&#x3D;63306 -DENABLE_DOWNLOADS&#x3D;1 -DDOWNLOAD_BOOST&#x3D;1 -DWITH_BOOST&#x3D;&#x2F;app&#x2F;src&#x2F;boost_1_59_0 -DMYSQL_USER&#x3D;mysql -DWITH_EMBEDDED_SERVER&#x3D;OFF</span><br><span class="line">make</span><br><span class="line">make install DESTDIR&#x3D;&quot;&#x2F;app&#x2F;server&#x2F;mysql&quot;</span><br></pre></td></tr></table></figure>
+<p>c++: 编译器内部错误：已杀死(程序 cc1plus),原因是内存不足。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">step 1:</span><br><span class="line">　　#sudo dd if&#x3D;&#x2F;dev&#x2F;zero of&#x3D;&#x2F;home&#x2F;swap bs&#x3D;64M count&#x3D;16</span><br><span class="line">　　注释：of&#x3D;&#x2F;home&#x2F;swap,放置swap的空间; count的大小就是增加的swap空间的大小，64M就是块大小，这里是64MB，所以总共空间就是bs*count&#x3D;1024MB.这里分配空间的时候需要一点时间，等待执行完毕。</span><br><span class="line">step 2:</span><br><span class="line">　　# sudo mkswap &#x2F;home&#x2F;swap (可能会提示warning: don&#39;t erase bootbits sectorson whole disk. Use -f to force，不用理会)</span><br><span class="line">　　注释：把刚才空间格式化成swap各式</span><br><span class="line">step 3:</span><br><span class="line">　　#sudo swapon &#x2F;home&#x2F;swap</span><br><span class="line">　　chmod 0600 &#x2F;swap&#x2F;</span><br><span class="line">　　swapoff &#x2F;home&#x2F;swap</span><br><span class="line">　　swapon &#x2F;home&#x2F;swap</span><br><span class="line">　　注释：使刚才创建的swap空间</span><br><span class="line">关闭swap的空间</span><br><span class="line">　　step 1:sudo swapoff &#x2F;home&#x2F;swap</span><br><span class="line">step 2:sudo rm &#x2F;home&#x2F;swap</span><br></pre></td></tr></table></figure>
+
+<h2 id="设置mysql配置文件"><a href="#设置mysql配置文件" class="headerlink" title="设置mysql配置文件"></a>设置mysql配置文件</h2><p>mysql的配置文件是放在/etc/目录下的，名字是my.cnf，具体配置如下。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">[client]</span><br><span class="line">port&#x3D;63306</span><br><span class="line">socket&#x3D;&#x2F;app&#x2F;server&#x2F;mysql&#x2F;tmp&#x2F;mysql.sock</span><br><span class="line">[mysqld]</span><br><span class="line">basedir&#x3D;&#x2F;app&#x2F;server&#x2F;mysql</span><br><span class="line">datadir&#x3D;&#x2F;app&#x2F;server&#x2F;mysql&#x2F;data</span><br><span class="line">socket&#x3D;&#x2F;app&#x2F;server&#x2F;mysql&#x2F;tmp&#x2F;mysql.sock</span><br><span class="line">#skip-external-locking</span><br><span class="line"># Disabling symbolic-links is recommended to prevent assorted security risks</span><br><span class="line">symbolic-links&#x3D;0</span><br><span class="line"># Settings user and group are ignored when systemd is used.</span><br><span class="line"># If you need to run mysqld under a different user or group,</span><br><span class="line"># customize your systemd unit file for mariadb according to the</span><br><span class="line"># instructions in http:&#x2F;&#x2F;fedoraproject.org&#x2F;wiki&#x2F;Systemd</span><br><span class="line">log-error&#x3D;&#x2F;app&#x2F;logs&#x2F;mysql&#x2F;error.log</span><br><span class="line">pid-file&#x3D;&#x2F;app&#x2F;logs&#x2F;mysql&#x2F;mysql.pid</span><br><span class="line"></span><br><span class="line">[mysqld_safe]</span><br><span class="line">log-error&#x3D;&#x2F;app&#x2F;logs&#x2F;mysql&#x2F;error.log</span><br><span class="line">pid-file&#x3D;&#x2F;app&#x2F;logs&#x2F;mysql&#x2F;mysql.pid</span><br><span class="line"></span><br><span class="line">#</span><br><span class="line"># include all files from the config directory</span><br><span class="line">#</span><br><span class="line">!includedir &#x2F;etc&#x2F;my.cnf.d</span><br></pre></td></tr></table></figure>
+
+<p>这里需要注意，配置文件最后一行引入了新的配置文件，下面列出my.cnf.d目录下名为mysql-clients.cnf的配置文件内容.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">#</span><br><span class="line"># These groups are read by MariaDB command-line tools</span><br><span class="line"># Use it for options that affect only one utility</span><br><span class="line">#</span><br><span class="line"></span><br><span class="line">[mysql]</span><br><span class="line"></span><br><span class="line">[mysql_upgrade]</span><br><span class="line"></span><br><span class="line">[mysqladmin]</span><br><span class="line"></span><br><span class="line">[mysqlbinlog]</span><br><span class="line"></span><br><span class="line">[mysqlcheck]</span><br><span class="line"></span><br><span class="line">[mysqldump]</span><br><span class="line"></span><br><span class="line">[mysqlimport]</span><br><span class="line"></span><br><span class="line">[mysqlshow]</span><br><span class="line"></span><br><span class="line">[mysqlslap]</span><br></pre></td></tr></table></figure>
+
+<p>在my.cnf配置文件中，需要注意几个配置，其中basedir指的是mysql的安装目录，datadir指的是mysql数据文件的存储目录，其他几项配置项，如果大家感兴趣可以自行查看官方解释。还需要特别说明的一个问题是，所有在配置文件中出现的路径、文件均需要具有可读写的权限，前面为MySQL创建了用户及组，所以上述配置文件中涉及到的路径和文件，均需要将其所有者及组指定为mysql用户，这样MySQL服务才能正常启动。 完成以上配置后，需要将mysqld的启动脚本放入/etc/init.d/路径中，执行以下命令。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cp -a &#x2F;app&#x2F;server&#x2F;mysql&#x2F;support-files&#x2F;mysql.server &#x2F;etc&#x2F;init.d&#x2F;mysqld</span><br></pre></td></tr></table></figure>
+
+<p>拷贝完成后，使用vim命令，修改/etc/init.d/mysqld中的basedir和datadir，确保其值与my.cnf文件中的内容相同。</p>
+<h2 id="初始化MySQL"><a href="#初始化MySQL" class="headerlink" title="初始化MySQL"></a>初始化MySQL</h2><h3 id="创建引用目录，依次执行以下命令"><a href="#创建引用目录，依次执行以下命令" class="headerlink" title="创建引用目录，依次执行以下命令"></a>创建引用目录，依次执行以下命令</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">mkdir -p &#x2F;app&#x2F;server&#x2F;mysql&#x2F;data&#x2F;</span><br><span class="line">mkdir -p &#x2F;app&#x2F;logs&#x2F;mysql</span><br><span class="line">mkdir -p &#x2F;app&#x2F;server&#x2F;mysql&#x2F;tmp</span><br><span class="line"></span><br><span class="line">touch &#x2F;app&#x2F;logs&#x2F;mysql&#x2F;error.log</span><br><span class="line"></span><br><span class="line">chmod -R 770 &#x2F;app&#x2F;server&#x2F;mysql</span><br><span class="line">chmod -R 770 &#x2F;app&#x2F;logs&#x2F;mysql</span><br><span class="line"></span><br><span class="line">chown -R mysql:mysql &#x2F;app&#x2F;server&#x2F;mysql</span><br><span class="line">chown -R mysql:mysql &#x2F;app&#x2F;logs&#x2F;mysql</span><br></pre></td></tr></table></figure>
+
+<p>因本文采用的是MySQL 5.7.23版本，所以不能使用mysql_install_db命令，而是需要使用mysqld -initialize命令对数据库进行初始化，具体命令如下。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;app&#x2F;server&#x2F;mysql&#x2F;bin&#x2F;mysqld --initialize --user&#x3D;mysql --basedir&#x3D;&#x2F;app&#x2F;server&#x2F;mysql --datadir&#x3D;&#x2F;app&#x2F;server&#x2F;mysql&#x2F;data</span><br></pre></td></tr></table></figure>
+
+<p>若前面配置文件中的各配置项均正确，各路径、文件均存在并可读写，改命令将提示执行成功，并能够在/root/目录下生成一个.mysql_secret文件，使用cat命令可查看其内容，其是mysql中本地root用户的初始密码。这里需要特别说明一下，本文作者使用mysql自动生成初始密码没有登录成功，然后通过安全启动脚本对mysql的root用户密码进行修改后，才能够正常登录和使用，所以这一步目前无法得到确认，大家可根据自己的实际情况处理。</p>
+<h2 id="使用安全模式启动MySQL"><a href="#使用安全模式启动MySQL" class="headerlink" title="使用安全模式启动MySQL"></a>使用安全模式启动MySQL</h2><p>在mysql安装目录的bin目录下，使用以下命令启动mysql。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;app&#x2F;server&#x2F;mysql&#x2F;bin&#x2F;mysqld_safe --user&#x3D;mysql &amp;</span><br></pre></td></tr></table></figure>
+
+<p>启动后，使用初始化所得的root密码登录mysql，查看是否可以正常操作，命令如下。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">.&#x2F;mysql -u root -P 63306 -p</span><br></pre></td></tr></table></figure>
+
+<h2 id="设置MySQL服务开机自启"><a href="#设置MySQL服务开机自启" class="headerlink" title="设置MySQL服务开机自启"></a>设置MySQL服务开机自启</h2><p>依次执行以下命令。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cd &#x2F;app&#x2F;server&#x2F;mysql&#x2F;bin&#x2F;</span><br><span class="line">chkconfig --level 35 mysqld on</span><br></pre></td></tr></table></figure>
+
+<p>启动MySQL服务</p>
+<p>前文使用的是安全模式启动，现在，需要让MySQL服务正常启动，首先，通过命令</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ps aux | grep mysql</span><br></pre></td></tr></table></figure>
+
+<p>查找到通过mysqld_safe命令启动的进程，使用kill命令将其全部杀掉，然后使用</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;etc&#x2F;init.d&#x2F;mysqld start</span><br></pre></td></tr></table></figure>
+
+<p>命令，启动MySQL服务，接下来，就请使用root用户登录，然后进行创建用户，创建数据库，赋权等操作，这部分属于MySQL的基本操作，本文不再赘述。</p>
+<h2 id="关闭MySQL服务"><a href="#关闭MySQL服务" class="headerlink" title="关闭MySQL服务"></a>关闭MySQL服务</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;etc&#x2F;init.d&#x2F;mysqld stop</span><br></pre></td></tr></table></figure>
+
+<h2 id="修改密码"><a href="#修改密码" class="headerlink" title="修改密码"></a>修改密码</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ALTER USER &#39;root&#39;@&#39;localhost&#39; IDENTIFIED BY &#39;root-password&#39;;</span><br></pre></td></tr></table></figure>
+
+<h2 id="数据库数据导入"><a href="#数据库数据导入" class="headerlink" title="数据库数据导入"></a>数据库数据导入</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"># 生成app用户</span><br><span class="line">CREATE USER &#39;app&#39;@&#39;localhost&#39; IDENTIFIED BY &#39;password&#39;;</span><br><span class="line">GRANT ALL ON app.* TO &#39;your-database&#39;@&#39;localhost&#39; WITH GRANT OPTION;</span><br><span class="line">  </span><br><span class="line">mysqldump -u app -p your-database &gt; your-database.sql</span><br></pre></td></tr></table></figure>
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#源码安装"><span class="nav-number">1.</span> <span class="nav-text">源码安装</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#环境准备"><span class="nav-number">1.1.</span> <span class="nav-text">环境准备</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#下载并安装cmake"><span class="nav-number">1.1.1.</span> <span class="nav-text">下载并安装cmake</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#下载并安装ncurses"><span class="nav-number">1.1.2.</span> <span class="nav-text">下载并安装ncurses</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#boost"><span class="nav-number">1.1.3.</span> <span class="nav-text">boost</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#为MySQL添加用户及组"><span class="nav-number">1.2.</span> <span class="nav-text">为MySQL添加用户及组</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#MySQL安装"><span class="nav-number">1.3.</span> <span class="nav-text">MySQL安装</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#设置mysql配置文件"><span class="nav-number">1.4.</span> <span class="nav-text">设置mysql配置文件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#初始化MySQL"><span class="nav-number">1.5.</span> <span class="nav-text">初始化MySQL</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#创建引用目录，依次执行以下命令"><span class="nav-number">1.5.1.</span> <span class="nav-text">创建引用目录，依次执行以下命令</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用安全模式启动MySQL"><span class="nav-number">1.6.</span> <span class="nav-text">使用安全模式启动MySQL</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#设置MySQL服务开机自启"><span class="nav-number">1.7.</span> <span class="nav-text">设置MySQL服务开机自启</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#关闭MySQL服务"><span class="nav-number">1.8.</span> <span class="nav-text">关闭MySQL服务</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#修改密码"><span class="nav-number">1.9.</span> <span class="nav-text">修改密码</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#数据库数据导入"><span class="nav-number">1.10.</span> <span class="nav-text">数据库数据导入</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="yanglishuan"
+      src="https://avatar.gitee.com/uploads/55/13655_yanglishuan.png!avatar200?1413413335">
+  <p class="site-author-name" itemprop="name">yanglishuan</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives">
+          <span class="site-state-item-count">1</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">yanglishuan</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v4.2.0
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> v7.7.0
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
