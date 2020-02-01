@@ -3,28 +3,26 @@
 
 <head>
 <title>测试二维码扫描</title>
-</head>
-
-<body>
-
-<button onclick="scanCode()">调用二维码扫描</button>
-
+<meta http-equiv="Content-Type" content="text/html" charset="UTF-8">
 <script>
-
 var ua = navigator.userAgent;
 isApp = ua.indexOf("andedu_app_3") > -1;
 
 function scanCode() {
   if (isApp) {
-    eduapp.scanCode()
+//    alert("扫码")
+    eduapp.scanCode();
   } else {
     alert("该页面未在和教育客户端打开")
   }
 }
 
 </script>
+</head>
 
+<body>
 
+<button onclick="scanCode()">调用二维码扫描</button>
 
 </body>
 </html>
